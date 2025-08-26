@@ -31,14 +31,12 @@ fi
 case $choice in
     1)
         echo "Đang cài đặt xfce4..."
-        pacman -S --noconfirm xfce4 xfce4-goodies
-        pacman -S --noconfirm lightdm lightdm-gtk-greeter
+        pacman -S --noconfirm xfce4 xfce4-goodies lightdm lightdm-gtk-greeter
         systemctl enable lightdm
         ;;
     2)
         echo "Đang cài đặt kde-plasma-manjaro..."
-        pacman -S --noconfirm plasma kde-applications
-        pacman -S --noconfirm sddm
+        pacman -S --noconfirm plasma kde-applications sddm
         systemctl enable sddm
         ;;
     3)
@@ -53,16 +51,14 @@ case $choice in
         case $gnome_choice in
             1)
                 echo "Đang cài đặt gnome-original..."
-                pacman -S --noconfirm gnome gnome-extra
-                pacman -S --noconfirm gdm
+                pacman -S --noconfirm gnome gnome-extra gdm
                 systemctl enable gdm
                 ;;
             2)
                 echo "Đang cài đặt gnome-macos-looklike..."
-                pacman -S --noconfirm gnome gnome-extra git
+                pacman -S --noconfirm gnome gnome-extra gdm git
                 echo "Bạn cần cài đặt các theme GTK, Icon và Extensions thủ công sau khi cài đặt xong."
                 echo "Xem file README (3).md để biết thêm chi tiết."
-                pacman -S --noconfirm gdm
                 systemctl enable gdm
                 ;;
             *)
@@ -88,7 +84,11 @@ case $choice in
                 ;;
             2)
                 echo "Đang cài đặt awesomevm-with-pre-dotfiles..."
+                
+                # Cài đặt các gói cần thiết từ repo chính và AUR
+                # Tách ra làm 2 lệnh để dễ debug hơn nếu có lỗi
                 pacman -S --noconfirm xorg xorg-init git tar
+                
                 if ! command -v yay &> /dev/null
                 then
                     echo "Cài đặt yay để cài các gói từ AUR..."
@@ -99,26 +99,35 @@ case $choice in
                     rm -rf yay
                 fi
 
-                yay -S --noconfirm picom-git awesome-git acpid git mpd ncmpcpp wmctrl firefox lxappearance gucharmap thunar alacritty neovim polkit-gnome xdotool xclip scrot brightnessctl alsa-utils pulseaudio jq acpi rofi inotify-tools zsh mpdris2 bluez bluez-utils bluez-plugins acpi acpi_call playerctl redshift cutefish-cursor-themes-git cutefish-icons upower xorg xorg-init tar
+                yay_packages="picom-git awesome-git acpid git mpd ncmpcpp wmctrl firefox lxappearance gucharmap thunar alacritty neovim polkit-gnome xdotool xclip scrot brightnessctl alsa-utils pulseaudio jq acpi rofi inotify-tools zsh mpdris2 bluez bluez-utils bluez-plugins acpi_call playerctl redshift cutefish-cursor-themes-git cutefish-icons upower"
+                echo "Đang cài đặt các gói từ AUR và repo..."
+                yay -S --noconfirm $yay_packages
 
-                git clone --recurse-submodules https://github.com/saimoomedits/dotfiles.git
-                cd dotfiles
-                cp -rf .config/* ~/.config/
-                cp -rf extras/mpd ~/.mpd
-                cp -rf extras/ncmpcpp ~/.ncmpcpp
-                cp -rf extras/fonts ~/.fonts
-                cp -rf extras/scripts ~/.scripts
-                cp -rf extras/oh-my-zsh ~/.oh-my-zsh
-
-                mkdir ~/.themes
-                cp ./themes/* ~/.themes/
-                cd ~/.themes
-                tar -xf Awesthetic.tar
-                tar -xf Cutefish-light-modified.tar
-                rm Awesthetic.tar Cutefish-light-modified.tar
-                cd ~
-
-                sudo chmod -R +x ~/.config/awesome/misc/*
+                # Kiểm tra xem thư mục dotfiles đã tồn tại chưa để tránh lỗi
+                if [ ! -d "dotfiles" ]; then
+                    git clone --recurse-submodules https://github.com/saimoomedits/dotfiles.git
+                else
+                    echo "Thư mục dotfiles đã tồn tại, bỏ qua bước git clone."
+                fi
+                
+                # Sao chép dotfiles
+                echo "Đang sao chép các dotfiles..."
+                cp -rf dotfiles/.config/* ~/.config/
+                cp -rf dotfiles/extras/mpd ~/.mpd
+                cp -rf dotfiles/extras/ncmpcpp ~/.ncmpcpp
+                cp -rf dotfiles/extras/fonts ~/.fonts
+                cp -rf dotfiles/extras/scripts ~/.scripts
+                cp -rf dotfiles/extras/oh-my-zsh ~/.oh-my-zsh
+                
+                # Xử lý theme
+                echo "Đang giải nén và di chuyển theme..."
+                mkdir -p ~/.themes
+                tar -xf dotfiles/themes/Awesthetic.tar -C ~/.themes/
+                tar -xf dotfiles/themes/Cutefish-light-modified.tar -C ~/.themes/
+                
+                # Kích hoạt dịch vụ
+                echo "Đang kích hoạt các dịch vụ..."
+                chmod -R +x ~/.config/awesome/misc/*
                 systemctl --user enable mpd
                 sudo systemctl enable bluetooth
                 

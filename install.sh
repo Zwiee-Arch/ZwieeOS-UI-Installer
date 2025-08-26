@@ -46,10 +46,9 @@ case $choice in
         echo "Vui lòng chọn kiểu cài đặt gnome:"
         echo "-----------------------------------"
         echo "1: gnome-original"
-        echo "2: gnome-macos-tahoe"
-        echo "3: gnome-macos-looklike"
+        echo "2: gnome-macos-looklike"
         echo "-----------------------------------"
-        read -p "Nhập lựa chọn của bạn (1-3): " gnome_choice
+        read -p "Nhập lựa chọn của bạn (1-2): " gnome_choice
 
         case $gnome_choice in
             1)
@@ -59,23 +58,6 @@ case $choice in
                 systemctl enable gdm
                 ;;
             2)
-                echo "Đang cài đặt gnome-macos-tahoe..."
-                pacman -S --noconfirm gnome gnome-extra git
-                git clone https://github.com/kayozxo/GNOME-macOS-Tahoe --depth=1
-                cd GNOME-macOS-Tahoe
-                ./install.sh # Cài đặt cả hai theme sáng và tối
-                echo "Bạn có muốn cài đặt theme libadwaita không?"
-                read -p "Nhập 'l' cho light, 'd' cho dark, hoặc Enter để bỏ qua: " liba_choice
-                case $liba_choice in
-                    l) ./install.sh -l -la ;;
-                    d) ./install.sh -d -la ;;
-                    *) echo "Không cài đặt theme libadwaita." ;;
-                esac
-                cd ..
-                pacman -S --noconfirm gdm
-                systemctl enable gdm
-                ;;
-            3)
                 echo "Đang cài đặt gnome-macos-looklike..."
                 pacman -S --noconfirm gnome gnome-extra git
                 echo "Bạn cần cài đặt các theme GTK, Icon và Extensions thủ công sau khi cài đặt xong."
